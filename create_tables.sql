@@ -1,3 +1,10 @@
+/*
+   Para optimizar el rendimiento de las consultas, se aplicó particionamiento por fecha en las tablas Item, orden e historico_item, 
+   justamente por que en el enunciado se destaca el gran volumen de las tablas de orden e items. De esta manera se reduce el 
+   volumen de datos escaneados en análisis temporales.
+   A su vez, se definió clustering por campos clave (item_id, customer_id, categoria_id) para acelerar búsquedas y joins en grandes volúmenes de datos.
+*/
+
 CREATE TABLE customer (
   customer_id        INT64,          
   email              STRING,
@@ -17,7 +24,10 @@ CREATE TABLE category (
 );
 
 
-CREATE TABLE item (
+CREATE TABLE item 
+PARTITION BY DATE(fecha_alta)
+CLUSTER BY item_id, customer_id 
+as(
   item_id            INT64,          
   descripcion        STRING,
   precio             float64,
@@ -29,7 +39,10 @@ CREATE TABLE item (
 );
 
 
-CREATE TABLE orden (
+CREATE TABLE orden 
+PARTITION BY DATE(fecha_orden)
+CLUSTER BY item_id, customer_id 
+as(
   orden_id           INT64,          
   item_id            INT64,         
   customer_id        INT64,          
@@ -39,7 +52,9 @@ CREATE TABLE orden (
 );
 
 
-CREATE TABLE historico_item (
+CREATE TABLE historico_item
+PARTITION BY DATE(fecha_lectura)
+CLUSTER BY item_id (
   fecha_lectura    DATE,          
   item_id            INT64,         
   precio             float64,
